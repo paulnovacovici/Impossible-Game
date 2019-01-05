@@ -103,6 +103,7 @@ MonoBehaviour:
   endExplosion: {fileID: 1430100354911176, guid: 6b7412e22f39d7c45b7325d96688306c,
     type: 2}
   jump: 0
+  numJumps: 0
   fitness: 0
   brain: 
 --- !u!212 &212229319224031818

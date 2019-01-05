@@ -21,6 +21,7 @@ public class Player : MonoBehaviour {
 		if (!gameover && Input.GetKey(KeyCode.Space) && isGrounded)
         {
             myRigidBody.AddForce(Vector3.up * (jumpPower * myRigidBody.mass * myRigidBody.gravityScale * 20.0f));
+            isGrounded = false;
         }
 	}
 
@@ -35,13 +36,15 @@ public class Player : MonoBehaviour {
         
     }
 
+
+
     private void OnCollisionEnter2D(Collision2D collision)
     {
-        if (collision.collider.tag == "Ground")
+        if (collision.collider.tag == "Ground" || collision.collider.tag == "Platform")
         {
             isGrounded = true;
         }
-        if (collision.collider.tag == "Enemy")
+        if (collision.collider.tag == "Enemy" || collision.collider.tag == "SideBox")
         {
             Vector3 pos = transform.position;
             Destroy(gameObject);
@@ -52,17 +55,9 @@ public class Player : MonoBehaviour {
 
     private void OnCollisionStay(Collision collision)
     {
-        if (collision.collider.tag == "Ground")
+        if (collision.collider.tag == "Ground" || collision.collider.tag == "Platform")
         {
             isGrounded = true;
-        }
-    }
-
-    private void OnCollisionExit2D(Collision2D collision)
-    {
-        if (collision.collider.tag == "Ground")
-        {
-            isGrounded = false;
         }
     }
 }

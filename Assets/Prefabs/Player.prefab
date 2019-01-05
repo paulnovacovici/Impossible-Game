@@ -99,7 +99,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 71d48f2caa97c89498bcea7e4eebbed7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  jumpPower: 3
+  jumpPower: 6
   endExplosion: {fileID: 1430100354911176, guid: 6b7412e22f39d7c45b7325d96688306c,
     type: 2}
 --- !u!212 &212370905894796454

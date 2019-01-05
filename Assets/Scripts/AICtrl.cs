@@ -4,6 +4,10 @@ using UnityEngine;
 using NeuralNet;
 
 public class AICtrl : MonoBehaviour {
+    public static int numInps;
+    public static int numHL = 4;
+
+    InputNode[] inps;
     public float[][] attIniData;
     public string[] attIniString;
     public Vector2 attempt;
@@ -19,16 +23,22 @@ public class AICtrl : MonoBehaviour {
     float mutationRate = 1f;
     float mutationProb = .05f;
 
+    public enum SelMode { Percent, Top2 };
+    public SelMode selMode;
+
     // Use this for initialization
     void Start () {
+        inps = GameObject.FindObjectsOfType<InputNode>();
+        numInps = inps.Length;
         myChallengeController = GameObject.FindObjectOfType<ChallengeController>();
         attIniData = new float[(int)attempt.y][];
         attIniString = new string[(int)attempt.y];
         
         for (int i = 0; i < attIniData.Length; i++)
         {
+            // Number of weights plus biases
             // inps(HL) + 2*HL + O
-            attIniData[i] = new float[57];
+            attIniData[i] = new float[numInps * numHL + 2 *numHL + 1];
         }
 
         RandomizeWholeDay();
@@ -95,9 +105,6 @@ public class AICtrl : MonoBehaviour {
     public void RespawnPlayer(int num)
     {
         GameObject[] grabPast = GameObject.FindGameObjectsWithTag("Passive");
-
-        // Reset Input Nodes
-        InputNode[] inps = GameObject.FindObjectsOfType<InputNode>();
 
         foreach(InputNode inp in inps)
         {
@@ -179,10 +186,18 @@ public class AICtrl : MonoBehaviour {
     {
         NN[] parents = new NN[2];
 
+        if (selMode == SelMode.Top2)
+        {
+            parents = GetFittest2Brains(aNN);
+        }
+
         // Loop through all day attempts & set the attempt ini string to a new string offspring
         for (int i = 0; i < attIniString.Length; i++)
         {
-            parents = Get2ProbBrains(aNN);
+            if (selMode == SelMode.Percent)
+            {
+                parents = Get2ProbBrains(aNN);
+            }
 
             if (i > attIniString.Length - 3)
             {
@@ -226,11 +241,6 @@ public class AICtrl : MonoBehaviour {
 
         // now we reorder the array from highest to lowest
         double[] newProb = BubbleSort(false, allProb);
-
-        for (int i = 0; i < newProb.Length; i++)
-        {
-            //print("newProb[" + i + "]*fitMum = " + newProb[i] * fitSum);
-        }
 
         // create a new array that represents TP range max
         double[] ranges = new double[newProb.Length];
@@ -322,6 +332,7 @@ public class AICtrl : MonoBehaviour {
             if (choser > ranges[i - 1] && choser < ranges[i])
             {
                 reversal = i;
+                break;
             }
         }
 
@@ -360,8 +371,8 @@ public class AICtrl : MonoBehaviour {
     string GenerateOffspringBrain(NN[] parents)
     {
         // First create slice start & stop points
-        int start = Random.Range(0, 57);
-        int stop = Random.Range(start, 57);
+        int start = Random.Range(0, numInps * numHL + 2 * numHL + 1);
+        int stop = Random.Range(start, numInps * numHL + 2 * numHL + 1);
 
         // Then create the offspring brain string
         string offBrain = "";
@@ -379,10 +390,10 @@ public class AICtrl : MonoBehaviour {
         }
 
         // Finally loop through the first selected parent values again from the end of the cut to the end of the brain sequence & add that to the offspring's brain
-        for (int i = stop; i < 57; i++)
+        for (int i = stop; i < numInps * numHL + 2 * numHL + 1; i++)
         {
             // Checks for if at the end of loop or not for comma
-            bool com = i != 56;
+            bool com = i != numInps * numHL + 2 * numHL;
 
             // The adding part
             offBrain += parents[0].ReadBrain().Split(',')[i] + (com ? "," : string.Empty);
@@ -419,7 +430,7 @@ public class AICtrl : MonoBehaviour {
     void RandomizeAParentWeights(NN[] parents)
     {
         // set r that will hold a randomly generated brain
-        float[] r = new float[57];
+        float[] r = new float[numInps * numHL + 2 * numHL + 1];
 
         // loop through & generate a brain
         for (int k = 0; k < r.Length; k++)

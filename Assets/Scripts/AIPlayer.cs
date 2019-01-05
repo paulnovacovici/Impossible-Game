@@ -17,11 +17,15 @@ public class AIPlayer : MonoBehaviour {
     float[] ini;
     public int numJumps;
 
-    public NN nn = new NN(12, 4);
+    public NN nn;
     AICtrl C;
     public float fitness;
     public string brain;
-    List<Collision2D> colliders = new List<Collision2D>();
+
+    private void Awake()
+    {
+        nn = new NN(AICtrl.numInps, AICtrl.numHL);
+    }
 
     // Use this for initialization
     void Start()
@@ -66,6 +70,7 @@ public class AIPlayer : MonoBehaviour {
             {
                 numJumps++;
                 myRigidBody.AddForce(Vector3.up * (jumpPower * myRigidBody.mass * myRigidBody.gravityScale * 20.0f));
+                isGrounded = false;
             }
 
             float[] inps = new float[inputs.transform.childCount];
@@ -73,11 +78,11 @@ public class AIPlayer : MonoBehaviour {
             int i = 0;
             foreach (Transform child in inputs.transform)
             {
-                inps[i] = child.gameObject.GetComponent<InputNode>().enemy ? 1 : 0;
+                inps[i] = child.gameObject.GetComponent<InputNode>().inp;
                 i++;
             }
             
-            fitness = (ended) ? fitness : (ScoreScript.scoreValue/(float)Math.Pow(numJumps*10,2));
+            fitness = (ended) ? fitness : (ScoreScript.scoreValue);
 
             jump = ended ? 0 : (nn.CalculateNN(inps));
         }
@@ -86,12 +91,8 @@ public class AIPlayer : MonoBehaviour {
 
     public void Reset()
     {
-        for(int i = colliders.Count-1; i >= 0; i--)
-        {
-            OnCollisionExit2D(colliders[i]);
-        }
-
         fitness = 0;
+        numJumps = 1;
         nn.SetFitness(fitness);
         tag = "Active";
         isGrounded = false;
@@ -120,17 +121,11 @@ public class AIPlayer : MonoBehaviour {
 
     private void OnCollisionEnter2D(Collision2D collision)
     {
-        if (collision.collider.tag == "Player")
-        {
-            Physics2D.IgnoreCollision(collision.collider, GetComponent<BoxCollider2D>());
-            colliders.Add(collision);
-        }
-
-        if (collision.collider.tag == "Ground")
+        if (collision.collider.tag == "Ground" || collision.collider.tag == "Platform")
         {
             isGrounded = true;
         }
-        if (collision.collider.tag == "Enemy")
+        if (collision.collider.tag == "Enemy" || collision.collider.tag == "SideBox")
         {
             Vector3 pos = transform.position;
             RemovePlayer();
@@ -141,18 +136,9 @@ public class AIPlayer : MonoBehaviour {
 
     private void OnCollisionStay2D(Collision2D collision)
     {
-        if (collision.collider.tag == "Ground")
+        if (collision.collider.tag == "Ground" || collision.collider.tag == "Platform")
         {
             isGrounded = true;
-        }
-    }
-
-    private void OnCollisionExit2D(Collision2D collision)
-    {
-        if (collision.collider.tag == "Ground")
-        {
-            colliders.Remove(collision);
-            isGrounded = false;
         }
     }
 }

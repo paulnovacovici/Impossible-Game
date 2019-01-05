@@ -8,6 +8,8 @@ TagManager:
   - Enemy
   - Active
   - Passive
+  - SideBox
+  - Platform
   layers:
   - Default
   - TransparentFX
